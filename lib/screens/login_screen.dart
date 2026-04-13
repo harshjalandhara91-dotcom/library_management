@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -77,22 +78,24 @@ class _LoginScreenState extends State<LoginScreen>
 
     try {
 
-      GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      final credential = await AuthService.signInWithGoogle();
 
-      await FirebaseAuth.instance.signInWithPopup(googleProvider);
-
-      Navigator.pushReplacementNamed(context, "/dashboard");
+      if (credential != null && mounted) {
+        Navigator.pushReplacementNamed(context, "/dashboard");
+      }
 
     } catch (e) {
 
       // ignore popup close error
-      if (e.toString().contains('popup-closed-by-user')) {
+      if (e.toString().contains('popup-closed-by-user') || e.toString().contains('canceled')) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
 
     }
 
